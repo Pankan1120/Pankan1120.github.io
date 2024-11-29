@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nawattagum Speed Test</title>
+    <title>Code Speed Test with Timer and Score</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -89,47 +89,67 @@
             font-size: 1.2rem;
             margin-top: 20px;
         }
+
+        /* สำหรับแสดงคะแนนที่กลางหน้าจอ */
+        #score-display {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff99;
+            padding: 30px 50px;
+            font-size: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7);
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Nawattagum Speed Test</h1>
+        <h1>Code Speed Test with Timer and Score</h1>
         <p>Copy the code below as fast as you can!</p>
         <div id="code-box"></div>
-        <textarea id="input-box" placeholder="Type the code here..."></textarea>
+        <textarea id="input-box" placeholder="Type the code here..." disabled></textarea>
         <button id="start-btn">Start Test</button>
         <button id="reset-btn">Reset</button>
-        <p class="result" id="time-result"></p>
+        <p class="result" id="time-result">Time: 00:30</p>
         <p class="result" id="score-result">Score: 0</p>
     </div>
 
+    <div id="score-display">Your Score: 0</div> <!-- คะแนนที่จะแสดงเมื่อหมดเวลา -->
+
     <script>
         const sampleCodes = [
-           `Geography`,
+            `Geography`,
             `Drone`,
             `Thailand Land Smile`,
             `Nawattagum So GOOOOOOD`,
-            `high tide`,
-            `low tide`,
-            `meadow`,
-            `low tide`,
-            `grassland`,
-            `desert`,
-            `farmland`,
-            `hedge`,
-            `hill`,
-            `rapids`,
-            `waterfall`,
-            `swamp`,
-            `volcano`,
-            `geyser`,
-            `plateau`,
-            `valley`,
-            `canyon`,
-            `sand dune`,
-            `polar region`,
-            `glacier`,
-            `iceberg`,
+            'high tide',
+            'pond',
+            'meadow',
+            'low tide',
+            'grassland',
+            'desert',
+            'farmland',
+            'hedge',
+            'hill',
+            'rapids',
+            'waterfall',
+            'swamp',
+            'oasis',
+            'volcano',
+            'geyser',
+            'plateau',
+            'valley',
+            'canyon',
+            'sand dune',    
+            'polar region',
+            'glacier',
+            'iceberg'
         ];
 
         const codeBox = document.getElementById('code-box');
@@ -138,10 +158,13 @@
         const resetBtn = document.getElementById('reset-btn');
         const timeResult = document.getElementById('time-result');
         const scoreResult = document.getElementById('score-result');
+        const scoreDisplay = document.getElementById('score-display'); // อ้างอิงถึง div ที่จะแสดงคะแนน
 
         let startTime;
         let currentCode;
-        let score = 0;  // เก็บคะแนนเริ่มต้น
+        let score = 0;
+        let timer;
+        let remainingTime = 30; // เวลาเริ่มต้น 30 วินาที
         let isTestRunning = false;
 
         function getRandomCode() {
@@ -153,11 +176,14 @@
             currentCode = getRandomCode();
             codeBox.textContent = currentCode;
             inputBox.value = '';
-            timeResult.textContent = '';
+            timeResult.textContent = `Time: 00:${remainingTime}`;
             scoreResult.textContent = `Score: ${score}`;
             startTime = new Date();
             isTestRunning = true;
-            inputBox.focus();
+            inputBox.disabled = false;  // เปิดใช้งาน input box
+
+            // เริ่มจับเวลา 30 วินาที
+            timer = setInterval(updateTime, 1000);
         }
 
         function updateCode() {
@@ -167,20 +193,35 @@
         }
 
         function resetTest() {
-            score = 0;  // รีเซ็ตคะแนน
+            clearInterval(timer);  // หยุดจับเวลา
+            score = 0;
+            remainingTime = 30;
             currentCode = '';
             codeBox.textContent = '';
             inputBox.value = '';
-            timeResult.textContent = '';
+            timeResult.textContent = `Time: 00:00`;
             scoreResult.textContent = `Score: ${score}`;
             startBtn.textContent = 'Start Test';
             isTestRunning = false;
+            inputBox.disabled = true;  // ปิดใช้งาน input box
+            scoreDisplay.style.display = 'none';  // ซ่อนคะแนนเมื่อรีเซ็ต
+        }
+
+        function updateTime() {
+            if (remainingTime > 0) {
+                remainingTime--;
+                timeResult.textContent = `Time: 00:${remainingTime < 10 ? '0' + remainingTime : remainingTime}`;
+            } else {
+                clearInterval(timer);  // หยุดจับเวลาเมื่อหมดเวลา
+                scoreDisplay.textContent = `Your Score: ${score}`;  // แสดงคะแนนเมื่อหมดเวลา
+                scoreDisplay.style.display = 'block';  // แสดงคะแนนที่กลางหน้าจอ
+                inputBox.disabled = true;  // ปิดการพิมพ์
+            }
         }
 
         startBtn.addEventListener('click', () => {
             if (isTestRunning) {
-                isTestRunning = false;
-                startBtn.textContent = 'Start Test';
+                resetTest();  // ถ้าทดสอบกำลังทำงานอยู่ ให้รีเซ็ตทันที
             } else {
                 startTest();
                 startBtn.textContent = 'Stop Test';
@@ -192,7 +233,7 @@
         });
 
         inputBox.addEventListener('input', () => {
-            if (!isTestRunning) return; // Do nothing if test is not running
+            if (!isTestRunning) return;  // ถ้าทดสอบยังไม่ได้เริ่มหรือเสร็จแล้ว
 
             const typedText = inputBox.value;
 
